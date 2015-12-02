@@ -7,8 +7,8 @@ import string
 # weather icons path
 iconsPath = "./icons/"
 
-# location for Wambrechies, FR on weather.com
-weatherDotComLocationCode = 'FRXX2043'
+# location for Lille, FR on weather.com
+weatherDotComLocationCode = 'FRXX0052'
 
 # font colours
 colourWhite = (255, 255, 255)
@@ -30,7 +30,8 @@ class pitft :
         os.putenv('SDL_FBDEV', '/dev/fb0')
         # init pygame
         pygame.display.init()
-        size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        size = (pygame.display.Info().current_w,
+                pygame.display.Info().current_h)
         self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
         # clear screen
         self.screen.fill((0, 0, 0))
@@ -57,8 +58,10 @@ fontSm = pygame.font.Font(fontpath, 18)
 while True:
     # retrieve data from weather.com
     #TODO catch error and retry
-    weather = pywapi.get_weather_from_weather_com(weatherDotComLocationCode)
+    weather = pywapi.get_weather_from_weather_com(weatherDotComLocationCode,
+                                                  units='metric')
     # extract current data for today
+    station = weather['current_conditions']['station']
     today = weather['forecasts'][0]['day_of_week'][0:3] + " " \
           + weather['forecasts'][0]['date'][4:] + " " \
           + weather['forecasts'][0]['date'][:3]
@@ -82,16 +85,15 @@ while True:
         test = float(weather['forecasts'][0]['day']['wind']['speed'])
     except ValueError:
         start = 1
-
     for i in range(start, 5):
         if not(weather['forecasts'][i]):
             break
         forecastDays[i] = weather['forecasts'][i]['day_of_week'][0:3]
         forecaseHighs[i] = weather['forecasts'][i]['high'] + u'\N{DEGREE SIGN}' + "C"
         forecaseLows[i] = weather['forecasts'][i]['low'] + u'\N{DEGREE SIGN}' + "C"
-        forecastPrecips[i] = weather['forecasts'][i]['day']['chance_precip'] + "%"
+        forecastPrecips[i] = weather['forecasts'][i]['day']['chance_precip'] + "% (pluie)"
         forecastWinds[i] = "{:.0f}".format(int(weather['forecasts'][i]['day']['wind']['speed'])) + \
-                           weather['forecasts'][i]['day']['wind']['text']
+                           " km/h "+weather['forecasts'][i]['day']['wind']['text']
     # blank the screen
     mytft.screen.fill(colourBlack)
     # Render the weather logo at 0,0
@@ -103,6 +105,9 @@ while True:
     textAnchorY = 5
     textYoffset = 20
     # add current weather data text artifacts to the screen
+    text_surface = font.render(station, True, colourWhite)
+    mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+    textAnchorY+=textYoffset
     text_surface = font.render(today, True, colourWhite)
     mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
     textAnchorY+=textYoffset
@@ -122,10 +127,10 @@ while True:
     mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
     # set X axis text anchor for the forecast text
     textAnchorX = 0
-    textXoffset = 100#65
+    textXoffset = 140
     # add each days forecast text
     for i in forecastDays:
-        textAnchorY = 160
+        textAnchorY = 180
         text_surface = fontSm.render(forecastDays[int(i)], True, colourWhite)
         mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
         textAnchorY+=textYoffset
