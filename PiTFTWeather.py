@@ -1,15 +1,17 @@
 import os, syslog
 import pygame
+import signal
 import time
 import pywapi
 import string
 
+
+# global vars
+is_run = True
 # weather icons path
 iconsPath = "./icons/"
-
 # location for Lille, FR on weather.com
 weatherDotComLocationCode = 'FRXX0052'
-
 # font colours
 colourWhite = (255, 255, 255)
 colourBlack = (0, 0, 0)
@@ -42,6 +44,15 @@ class pitft :
 
     def __del__(self):
         "Destructor to make sure pygame shuts down, etc."
+        pygame.quit()
+
+# exit handler
+def sigterm_handler(signum, frame):
+   global is_run
+   is_run = False
+
+# manage SIGTERM for clean exit with supervisord
+signal.signal(signal.SIGTERM, sigterm_handler)
 
 # Create an instance of the PyScope class
 mytft = pitft()
@@ -55,7 +66,7 @@ fontpath = pygame.font.match_font('dejavusansmono')
 font = pygame.font.Font(fontpath, 20)
 fontSm = pygame.font.Font(fontpath, 18)
 
-while True:
+while(is_run):
     # retrieve data from weather.com
     #TODO catch error and retry
     weather = pywapi.get_weather_from_weather_com(weatherDotComLocationCode,
